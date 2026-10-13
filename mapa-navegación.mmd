@@ -1,0 +1,13 @@
+flowchart LR
+    login["loginClient"]
+    reset["resetPassword"]
+    register["registerClient"]
+    list["listTickets"]
+    view["viewTicket"]
+    add["addTicket"]
+    
+    login -->|Click '¿Olvidó su contraseña?'| reset -->login
+    login --> |Click 'Registrate'|register --> login
+    login -->|Click 'Ingresar'|list
+    list -->|Click en ID|view -->|Click en 'Lista de Tickets'|list
+    list -->|Click en 'Agregar Ticket'|add -->|Click en 'Lista de Tickets'|list
