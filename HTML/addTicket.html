@@ -12,34 +12,13 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width,initial-scale=1.0">
         <title>POST Form Data as JSON with JavaScript Fetch API</title>
+        <link rel="stylesheet" href="style.css">
 
-        <style type="text/css"> 
-  
-            label { 
-              font-size: 18px; 
-            } 
-            form {
-                width: 500px;
-                border: 1px solid black; 
-            }
-            input, textarea { 
-              margin: 7px; 
-              padding: 2px 
-            } 
-            .form-label{
-                margin-bottom:0!important;
-            }     
-            .txt {
-                display: inline-block;
-                  width: 80%;
-                  outline: none;
-                margin:0;
-            }
-        </style> 
     </head>
 <body>
     <!-- Area de encabezados fijos -->
-    <!-- close the browser and start it with the --disable-web-security and --user-data-dir flags-->
+    <!-- close the browser and start it with the --disable-web-security and --user-data-dir flags-->   
+    
     <center><img src="addticke.png" alt="Nuestra imagen corporativa" style="width:200px;height:150px;"></center>
     <center>
         <h1>Sistema de Mesa de Ayuda</h1>
@@ -48,10 +27,10 @@
 
     <!-- Formulario para enviar los datos -->    
     <center>
-    <form class="form" method="POST" style="background-color:#d8f7cf" width="100px" border="1">
+    <form class="form" method="POST" >
         <br>
         <table>
-            <tr style="height:10px;">
+            <tr >
                 <td><label for="descripcion" class="form-label">Descripción</label></td>
             </tr>
             <tr>
@@ -63,9 +42,8 @@
 
         </table>
         
-        <button type="submit">Agregar Ticket</button>
+        <button id="submit-btn" type="submit">Agregar Ticket</button>
         <button id="backToTickets" type="button" hidden>Volver a listar tickets</button>
-        
         
     <p> </p>
     </form>

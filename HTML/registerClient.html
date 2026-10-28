@@ -12,30 +12,8 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width,initial-scale=1.0">
         <title>POST Form Data as JSON with JavaScript Fetch API</title>
-
-        <style type="text/css"> 
-  
-            label { 
-              font-size: 18px; 
-            } 
-            form {
-                width: 500px;
-                border: 1px solid black; 
-            }
-            input { 
-              margin: 7px; 
-              padding: 2px 
-            } 
-            .form-label{
-                margin-bottom:0!important;
-            }     
-            .txt {
-                display: inline-block;
-                  width: 80%;
-                  outline: none;
-                margin:0;
-            }
-        </style> 
+        <link rel="stylesheet" href="style.css">
+        
     </head>
 <body>
     <!-- Area de encabezados fijos -->
@@ -48,7 +26,7 @@
 
     <!-- Formulario para enviar los datos -->    
     <center>
-    <form class="form" method="GET" style="background-color:#d8f7cf" width="100px" border="1">
+    <form class="form" method="GET" >
         <br>
         <!-- <center><h4>Ingrese su identificación de usuario y password</h4></center> -->
         <table>
@@ -92,7 +70,7 @@
 
         </table>
         
-        <button type="submit">Registrarse</button>
+        <button id="submit-btn" type="submit">Registrarse</button>
         
         
     <p> </p>

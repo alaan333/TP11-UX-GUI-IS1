@@ -450,13 +450,11 @@ app.post('/api/listarTicket', (req,res) => {
 
     scanDbTicket(clienteID)
     .then(resultDb => {
-      if (Object.keys(resultDb).length == 0) {
-        res.status(400).send({response : "ERROR" , message : "clienteID no tiene tickets"});
-        return;
-      } else {
-        res.status(200).send(JSON.stringify({response : "OK",  "data": resultDb}));
-    }
-
+        res.status(200).send({response : "OK", data : resultDb});
+    })
+    .catch(err => {
+        console.error("listarTicket: error de acceso a la base de datos", err);
+        res.status(500).send({response : "ERROR", message : "Error al acceder a los tickets"});
     });
 
 });

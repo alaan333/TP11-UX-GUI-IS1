@@ -55,8 +55,16 @@ AWS
 const HTMLResponse=document.querySelector("#app");
 const addTicketLink = document.createElement('a');
 addTicketLink.href = `addTicket.html?${new URLSearchParams(document.location.search).toString()}`;
-addTicketLink.textContent = 'Crear un ticket';
+addTicketLink.textContent = '+ Crear un ticket';
 HTMLResponse.appendChild(addTicketLink);
+addTicketLink.style.display = 'inline-block';
+addTicketLink.style.backgroundColor = '#4CAF50';
+addTicketLink.style.color = 'white';
+addTicketLink.style.padding = '5px 20px';
+addTicketLink.style.textDecoration = 'none';
+addTicketLink.style.borderRadius = '5px';
+addTicketLink.style.textAlign = 'center';
+addTicketLink.style.fontWeight = 'bold';
 
 var ticket = {
     "ID" : query.id,
@@ -106,15 +114,33 @@ console.log("ticket  :"+JSON.stringify(ticket));
 console.log("options :"+JSON.stringify(options));
 
 
+function showTicketMessage(message, color) {
+    const messageElement = document.getElementById('mensajes');
+    messageElement.style.textAlign = "center";
+    messageElement.style.color = color;
+    messageElement.textContent = message;
+}
+
 fetch(`${APIREST_URL}`,options)
-.then(res => {
-    return res.json();
+.then(async res => {
+    const result = await res.json();
+    if (!res.ok) {
+        throw new Error(result.message || "No se pudieron cargar los tickets.");
+    }
+    return result;
 }).then(ticket=>{
     console.log("ticket:");
     console.log(ticket);
+    if (!Array.isArray(ticket.data)) {
+        throw new Error("La respuesta del servidor no contiene una lista de tickets válida.");
+    }
+
     let f=false;
     let table=document.createElement("table");
-    table.style.border="1px solid";
+    table.style.fontSize="20px";
+    table.style.margin="10px";
+    table.style.width="80%";
+    table.style.border="2px solid";
     table.style.backgroundColor="##626607";
 //ticket.uresponse.forEach((t)=> { 
     ticket.data.forEach((t)=> { 
@@ -128,6 +154,7 @@ fetch(`${APIREST_URL}`,options)
                 hdr.forEach((item) => {
                     let th=document.createElement("th");
                     th.style.border="1px solid";
+                    th.style.backgroundColor="#9ce49e";
 
                     th.innerText = item;
                     tr.appendChild(th);
@@ -135,15 +162,26 @@ fetch(`${APIREST_URL}`,options)
                 table.appendChild(tr);                   
             }
 
-            const body=[t.clienteID,`${t.id}`,`${t.descripcion || ''}`,`${t.estado_solucion}`,`${t.ultimo_contacto}`];
-            
             let trl=document.createElement("tr");
-            body.forEach((line) => {
-                let td=document.createElement("td");
-                td.style.border="1px solid";
-                td.innerText = line;
-                trl.appendChild(td);
-            });
+            [t.clienteID, t.id, t.descripcion || '', t.estado_solucion, t.ultimo_contacto]
+                .forEach((value, index) => {
+                    let td=document.createElement("td");
+                    td.style.border="1px solid";
+
+                    if (index === 1) {
+                        const ticketUrl = new URLSearchParams(document.location.search);
+                        ticketUrl.set('ticketId', t.id);
+                        //Redirecciona a viewTicket.html con los parámetros de búsqueda
+                        const ticketLink = document.createElement('a');
+                        ticketLink.href = `viewTicket.html?${ticketUrl.toString()}`;
+                        ticketLink.textContent = t.id;
+                        td.appendChild(ticketLink);
+                    } else {
+                        td.textContent = value;
+                    }
+
+                    trl.appendChild(td);
+                });
             table.appendChild(trl);                   
         }
     });
@@ -154,8 +192,9 @@ fetch(`${APIREST_URL}`,options)
     } else {
 
         console.log("no tiene tickets");
-        document.getElementById('mensajes').style.textAlign = "center";
-        document.getElementById('mensajes').style.color="RED";
-        document.getElementById("mensajes").innerHTML = "No hay tickets pendientes";
+        showTicketMessage("No hay tickets pendientes", "RED");
     }
+}).catch(error => {
+    console.error("Error al listar tickets:", error);
+    showTicketMessage(error.message || "No se pudieron cargar los tickets.", "RED");
 });
