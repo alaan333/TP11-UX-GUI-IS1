@@ -6,12 +6,15 @@ form.addEventListener('submit', async (event) => {
 	resultMessage.textContent = '';
 
 	const formData = new FormData(form);
-	const contacto = formData.get('contacto')?.toString().trim();
-	const password = formData.get('password1')?.toString();
-	const passwordConfirm = formData.get('password2')?.toString();
+	const data = Object.fromEntries(formData); 
 
+	const contacto = data.contacto?.toString().trim();
+	const password = data.password1?.toString();
+	const passwordConfirm = data.password2?.toString();
+	const termsCondition = data.termscondition?.toString();
+	
 	if (!contacto || !password || !passwordConfirm) {
-		resultMessage.style.color = 'RED';
+		resultMessage.style.color = 'GREEN';
 		resultMessage.textContent = 'Complete todos los campos.';
 		return;
 	}
@@ -19,6 +22,14 @@ form.addEventListener('submit', async (event) => {
 	if (password !== passwordConfirm) {
 		resultMessage.style.color = 'RED';
 		resultMessage.textContent = 'Las contraseñas no coinciden.';
+		return;
+	}
+	if (termsCondition != 'on') {
+		console.log('no aceptó los T&C no se puede loggear');
+		document.getElementById('resultado2').style.textAlign = 'center';
+		document.getElementById('resultado2').style.color = 'RED';
+		document.getElementById('resultado2').textContent =
+			'Debe aceptar los T&C para poder usar el sistema';
 		return;
 	}
 

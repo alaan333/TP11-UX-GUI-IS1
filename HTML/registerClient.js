@@ -9,15 +9,29 @@ form.addEventListener('submit', async (event) => {
 	const data = Object.fromEntries(formData);
 	const contacto = data.contacto?.trim();
 	const nombre = `${data.name?.trim() || ''} ${data.surname?.trim() || ''}`.trim();
-	const password = data.password;
+	const password = data.password1?.toString();
+	const passwordConfirm = data.password2?.toString();
 
 	resultMessage.textContent = '';
 	termsMessage.textContent = '';
 
-	if (!contacto || !password || !data.name?.trim() || !data.surname?.trim()) {
+	if (
+		!contacto ||
+		!password ||
+		!passwordConfirm ||
+		!data.name?.trim() ||
+		!data.surname?.trim()
+	) {
 		resultMessage.style.color = 'RED';
 		resultMessage.style.textAlign = 'center';
 		resultMessage.textContent = 'Complete todos los campos para poder registrarse';
+		return;
+	}
+
+	if (password !== passwordConfirm) {
+		resultMessage.style.color = 'RED';
+		resultMessage.style.textAlign = 'center';
+		resultMessage.textContent = 'Las contraseñas no coinciden.';
 		return;
 	}
 

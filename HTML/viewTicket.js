@@ -5,7 +5,9 @@ const message = document.getElementById('mensajes');
 const backLink = document.getElementById('backToTickets');
 
 const listParams = new URLSearchParams(params);
+console.log('Parametros '+listParams.toString());
 listParams.delete('ticketId');
+console.log('Parametros '+listParams.toString());
 backLink.href = `listarTicket.html?${listParams.toString()}`;
 
 function showMessage(text, color = 'RED') {
@@ -64,15 +66,15 @@ if (!ticketId) {
 					return;
 				}
 
-				const row = table.insertRow();
-				const header = document.createElement('th');
+				const row = table.insertRow(); //crea la fila.
+				const header = document.createElement('th'); //crea la celda del encabezado.
 				header.textContent = label;
-				const cell = document.createElement('td');
-				cell.textContent = String(value);
-				[header, cell].forEach((element) => {
+				const cell = document.createElement('td'); //crea la celda del valor.
+				cell.textContent = String(value); //establece el texto de cada celda.
+				[header, cell].forEach((element) => { //crea un arreglo con las dos celdas.
 					element.style.border = '1px solid #777';
 					element.style.padding = '8px';
-					row.appendChild(element);
+					row.appendChild(element); //incorpora el elemento a la fila.
 				});
 			});
 
