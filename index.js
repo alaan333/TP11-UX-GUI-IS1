@@ -113,59 +113,51 @@ app.post('/api/getCliente/:id', (req,res) => {
 
 /*---
   /api/loginCliente
-  Esta API permite acceder a un cliente por ID y comparar la password pasada en un JSON en el cuerpo con la indicada en el DB
-*/  
+  Busca al cliente por contacto (correo) y verifica su password.
+*/
 app.post('/api/loginCliente', (req,res) => {
 
-    const { id } = req.body;
-    const {password} = req.body;
+    const { contacto } = req.body;
+    const { password } = req.body;
 
-    console.log("loginCliente: id("+id+") password ("+password+")");
+    console.log("loginCliente: contacto("+contacto+")");
 
     if (!password) {
         res.status(400).send({response : "ERROR" , message : "Password no informada"});
         return;
     }    
-    if (!id) {
-        res.status(400).send({response : "ERROR" , message : "id no informado"});
+    if (!contacto) {
+        res.status(400).send({response : "ERROR" , message : "Contacto no informado"});
         return;
     }    
 
-    let getClienteByKey = function () {
-        var params = {
-            TableName: "cliente",
-            Key: {
-                "id" : id
-            }
-        };
-        docClient.get(params, function (err, data) {
-            if (err) {
-                res.status(400).send(JSON.stringify({response : "ERROR", message : "DB access error "+err}));
-            }
-            else {
-                if (Object.keys(data).length == 0) {
-                    res.status(400).send({response : "ERROR" , message : "Cliente invalido"});
-                } else {
-                    const paswd=jsonParser('password',data.Item);
-                    const activo=jsonParser('activo',data.Item);
-                    const id=jsonParser('id',data.Item);
-                    const contacto=jsonParser('contacto',data.Item);
-                    if (password == paswd) {
-                        if (activo == true) {
-                            const nombre=jsonParser('nombre',data.Item);
-                            const fecha_ultimo_ingreso=jsonParser('fecha_ultimo_ingreso',data.Item);
-                            res.status(200).send(JSON.stringify({response : "OK", "id" : id, "nombre" : nombre, "contacto" : contacto, "fecha_ultimo_ingreso": fecha_ultimo_ingreso}));    
-                        } else {
-                            res.status(400).send(JSON.stringify({response : "ERROR", message : "Cliente no activo"}));    
-                        }
-                    } else {
-                       res.status(400).send(JSON.stringify({response : "ERROR" , message : "usuario incorrecto"}));
-                    }    
-            }    
-            }
-        })
-    }
-    getClienteByKey();
+    scanDb(contacto)
+    .then(clientes => {
+        const cliente = clientes[0];
+        if (!cliente) {
+            res.status(400).send({response : "ERROR" , message : "Cliente invalido"});
+            return;
+        }
+        if (cliente.password !== password) {
+            res.status(400).send({response : "ERROR" , message : "usuario incorrecto"});
+            return;
+        }
+        if (cliente.activo !== true) {
+            res.status(400).send({response : "ERROR", message : "Cliente no activo"});
+            return;
+        }
+
+        res.status(200).send({
+            response : "OK",
+            id : cliente.id,
+            nombre : cliente.nombre,
+            contacto : cliente.contacto || contacto,
+            fecha_ultimo_ingreso : cliente.fecha_ultimo_ingreso
+        });
+    })
+    .catch(err => {
+        res.status(400).send({response : "ERROR", message : "DB access error "+err});
+    });
 
 });
 
@@ -178,7 +170,7 @@ async function scanDb(contacto) {
     const paramsScan = { // ScanInput
       TableName: "cliente", // required
       Select: "ALL_ATTRIBUTES" || "ALL_PROJECTED_ATTRIBUTES" || "SPECIFIC_ATTRIBUTES" || "COUNT",
-      FilterExpression : 'id = :contacto',
+      FilterExpression : 'contacto = :contacto OR id = :contacto',
       ExpressionAttributeValues : {':contacto' : scanKey}
     };      
     var objectPromise = await docClient.scan(paramsScan).promise().then((data) => {
@@ -196,7 +188,7 @@ app.post('/api/addCliente', (req,res) => {
     const {contacto} = req.body;
     const {password} = req.body;
     const {nombre}   = req.body;
-    console.log("addCliente: contacto("+contacto+") nombre("+nombre+") password("+password+")");
+    console.log("addCliente: contacto("+contacto+") nombre("+nombre+")");
     
     if (!password) {
         res.status(400).send({response : "ERROR" , message: "Password no informada"});
@@ -225,7 +217,8 @@ app.post('/api/addCliente', (req,res) => {
         hoy = dd + '/' + mm + '/' + yyyy;
     
         const newCliente = {
-         id                    : contacto,
+         id                    : crypto.randomUUID(),
+         contacto              : contacto,
          nombre                : nombre,
          password              : password,
          activo                : true,
@@ -344,11 +337,11 @@ Permite cambiar la password de un cliente
 */
 app.post('/api/resetCliente', (req,res) => {
     
-    const {id}       = req.body;
-    const {password} = req.body;
+    const contacto = req.body.contacto?.trim();
+    const {password, passwordConfirm} = req.body;
  
-    if (!id) {
-        res.status(400).send({response : "ERROR" , message: "Id no informada"});
+    if (!contacto) {
+        res.status(400).send({response : "ERROR" , message: "Correo no informado"});
         return;
     }
 
@@ -357,51 +350,68 @@ app.post('/api/resetCliente', (req,res) => {
         return;
     }
 
-    var params = {
-        TableName: "cliente",
-        Key: {
-            "id" : id
-            //test use "id": "0533a95d-7eef-4c6b-b753-1a41c9d1fbd0"   
-             }
-        };
-        
-    docClient.get(params, function (err, data) {
-        if (err)  {
-            res.status(400).send(JSON.stringify({response : "ERROR", message : "DB access error "+ null}));
+    if (password !== passwordConfirm) {
+        res.status(400).send({response : "ERROR", message : "Las contraseñas no coinciden"});
+        return;
+    }
+
+    scanDb(contacto)
+    .then(clientes => {
+        const cliente = clientes.find(item =>
+            item.contacto === contacto || item.id === contacto
+        );
+
+        if (!cliente) {
+            res.status(404).send({response : "ERROR", message : "No existe un cliente con ese correo"});
             return;
-        } else {
+        }
 
-            if (Object.keys(data).length == 0) {
-                res.status(400).send(JSON.stringify({"response":"ERROR",message : "Cliente no existe"}),null,2);
+        if (cliente.password === password) {
+            res.status(400).send({
+                response : "ERROR",
+                message : "La nueva contraseña coincide con la contraseña actual"
+            });
+            return;
+        }
+
+        const hoy = new Date();
+        const fechaCambio = [
+            String(hoy.getDate()).padStart(2, '0'),
+            String(hoy.getMonth() + 1).padStart(2, '0'),
+            hoy.getFullYear()
+        ].join('/');
+
+        const paramsUpdate = {
+            ExpressionAttributeNames: {
+                "#p": "password",
+                "#f": "fecha_cambio_password"
+            },
+            ExpressionAttributeValues: {
+                ":p": password,
+                ":f": fechaCambio
+            },
+            Key: {
+                "id": cliente.id
+            },
+            TableName: "cliente",
+            UpdateExpression: "SET #p = :p, #f = :f"
+        };
+
+        docClient.update(paramsUpdate, function (err) {
+            if (err) {
+                res.status(500).send({response : "ERROR", message : "No se pudo actualizar la contraseña"});
                 return;
-            } else {
-
-                const paramsUpdate = { 
-   
-                    ExpressionAttributeNames: { 
-                         "#p": "password" 
-                    }, 
-                    ExpressionAttributeValues: { 
-                        ":p": password 
-                   }, 
-                   Key: { 
-                       "id": id 
-                   }, 
-                   ReturnValues: "ALL_NEW", 
-                   TableName: "cliente", 
-                   UpdateExpression: "SET #p = :p" 
-                };
-                docClient.update(paramsUpdate, function (err, data) {
-                    if (err)  {
-                        res.status(400).send(JSON.stringify({response : "ERROR", message : "DB access error "+err}));
-                        return;
-                    } else {
-                        res.status(200).send(JSON.stringify({response : "OK", message : "updated" , "data": data}));
-                    }    
-                });    
             }
-        }    
+            res.status(200).send({
+                response : "OK",
+                message : "Contraseña actualizada correctamente"
+            });
+        });
     })
+    .catch(err => {
+        console.error("resetCliente: error de acceso a la base de datos", err);
+        res.status(500).send({response : "ERROR", message : "Error al acceder a la base de datos"});
+    });
 });
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 /*                                                       API REST ticket                                                             *
@@ -493,8 +503,17 @@ app.post('/api/addTicket', (req,res) => {
 
     const {clienteID} = req.body;
     const estado_solucion = 1;
-    const {solucion} = req.body;
-    const {descripcion} = req.body;
+    const descripcion = req.body.descripcion?.trim();
+
+    if (!clienteID) {
+        res.status(400).send({response : "ERROR", message : "clienteID no informado"});
+        return;
+    }
+
+    if (!descripcion) {
+        res.status(400).send({response : "ERROR", message : "Descripción no informada"});
+        return;
+    }
 
     var hoy = new Date();
     var dd = String(hoy.getDate()).padStart(2, '0');
@@ -506,7 +525,6 @@ app.post('/api/addTicket', (req,res) => {
      id                    : crypto.randomUUID(),
      clienteID             : clienteID,
      estado_solucion       : estado_solucion,
-     solucion              : solucion,
      descripcion           : descripcion,
      fecha_apertura        : hoy,
      ultimo_contacto       : hoy

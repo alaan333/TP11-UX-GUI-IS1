@@ -8,14 +8,11 @@ formE1.addEventListener('submit', (event) => {
 	event.preventDefault();
 	const formData = new FormData(formE1);
 	const data = Object.fromEntries(formData);
-	console.log('Application Server: Revisa el valor del form:');
-	console.log(data);
-
 	/*---
         Realiza validaciones en los datos del formulario antes de procesar
         */
 
-	if (data.id == '' || data.password == '') {
+	if (data.contacto == '' || data.password == '') {
 		console.log('debe indicar usuario');
 		document.getElementById('resultado1').style.color = 'RED';
 		document.getElementById('resultado1').style.textAlign = 'center';
@@ -24,7 +21,7 @@ formE1.addEventListener('submit', (event) => {
 		return;
 	}
 
-	if (data.id == 'pec') {   /*--Fix hecho por  Germán Lombardi IS1-2025 */
+	if (data.contacto == 'pec') {   /*--Fix hecho por  Germán Lombardi IS1-2025 */
 		console.log('pec no es bienvenido en éste sistema');
 		const m = '<li>El usuario <pec> no es bienvenido en éste sistema</li>';
 		document.getElementById('resultado2').style.color = 'RED';
@@ -64,14 +61,14 @@ formE1.addEventListener('submit', (event) => {
 /*-----
     Define el URI para realizar el acceso en base al acceso a un servidor local
 */
-    const MODE='LOCAL'; /*-- Instrucción a cambiar opciones LOCAL, TYPICODE o AWS --*/
+    const MODE='LOCAL'; /*-- Opciones disponibles: LOCAL, TYPICODE o AWS --*/
 
 	if (MODE == 'LOCAL') {
 	/*-----
         Crea estructuras para acceder a data del cliente
         */
 	    const login = {
-	        id: data.id,
+	        contacto: data.contacto.trim(),
 		    password: data.password
 		}	
 
@@ -86,9 +83,6 @@ formE1.addEventListener('submit', (event) => {
 
 
 	 	console.log('API REST:' + RESTAPI.loginCliente);
-	    console.log(login);
-	    console.log('login(' + JSON.stringify(login) + ')');
-	    console.log('options ' + JSON.stringify(options));
     	var API = RESTAPI.loginCliente;
 	    var APIoptions = options;
 
@@ -122,7 +116,7 @@ formE1.addEventListener('submit', (event) => {
 	/*----------------------------------------------------------------------*/
 	if (MODE == 'AWS') {
 		console.log('Acceso usando AWS lambda como application server');
-		API='https://fmtj0jrpp9.execute-api.us-east-1.amazonaws.com/default/loginUserGET?ID=' + data.id + '&PASSWORD=' + data.password;
+		API='https://fmtj0jrpp9.execute-api.us-east-1.amazonaws.com/default/loginUserGET?ID=' + data.contacto + '&PASSWORD=' + data.password;
     	APIoptions = { method: 'GET' };
 	}
 	/*-----

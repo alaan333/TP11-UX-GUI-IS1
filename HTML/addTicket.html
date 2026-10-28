@@ -22,7 +22,7 @@
                 width: 500px;
                 border: 1px solid black; 
             }
-            input { 
+            input, textarea { 
               margin: 7px; 
               padding: 2px 
             } 
@@ -48,28 +48,23 @@
 
     <!-- Formulario para enviar los datos -->    
     <center>
-    <form class="form" method="GET" style="background-color:#d8f7cf" width="100px" border="1">
+    <form class="form" method="POST" style="background-color:#d8f7cf" width="100px" border="1">
         <br>
-        <!-- <center><h4>Ingrese su identificación de usuario y password</h4></center> -->
         <table>
             <tr style="height:10px;">
-                <td><label for="cliForm" class="form-label">Descripción</label></td>               
+                <td><label for="descripcion" class="form-label">Descripción</label></td>
             </tr>
-             <tr style="height:10px;">    
-                <td><input class="txt" name="id" type="text" placeholder="Descripción"><br></td>
+            <tr>
+                <td><textarea id="descripcion" class="txt" name="descripcion" placeholder="Describa el problema" rows="5" required></textarea></td>
             </tr>
-            <tr><td>&nbsp;</td></tr>
-            
 
             <tr><td><span id="resultado1"></span></td></tr>
             <tr><td><br></td></tr>
-    
-            <tr><td><br><input name="termscondition" type="checkbox"> Acepto los términos y condiciones del ingreso al sistema (S.E.u.O)</p></br></td></tr>
-            <tr><td><span id="resultado2"></span></td></tr>
 
         </table>
         
         <button type="submit">Agregar Ticket</button>
+        <button id="backToTickets" type="button" hidden>Volver a listar tickets</button>
         
         
     <p> </p>
@@ -83,7 +78,7 @@
     <ul id="listado"></ul>
     
     <!-- Script a ser ejecutado --> 
-    <script src="loginClient.js" type="module"></script>
+    <script src="addTicket.js" type="module"></script>
     
 
 </body>

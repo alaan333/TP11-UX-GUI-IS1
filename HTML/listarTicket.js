@@ -23,6 +23,7 @@ Extrae del URL el id de cliente ya validado, su nombre y la última fecha de log
 console.log("Comienza listarTicket.js");
 
 var query = getQueryParams(document.location.search);
+console.log(query)
 console.log("id:"+query.id);
 console.log("contacto:"+query.contacto);
 console.log("ultima_fecha:"+query.fecha_ultimo_ingreso);
@@ -52,6 +53,11 @@ AWS
 */
 
 const HTMLResponse=document.querySelector("#app");
+const addTicketLink = document.createElement('a');
+addTicketLink.href = `addTicket.html?${new URLSearchParams(document.location.search).toString()}`;
+addTicketLink.textContent = 'Crear un ticket';
+HTMLResponse.appendChild(addTicketLink);
+
 var ticket = {
     "ID" : query.id,
 };
@@ -68,7 +74,7 @@ switch (query.mode) {
     console.log("API_listarTicket:"+RESTAPI.listarTicket); 
   
     ticket = {
-       "ID" : query.id,
+       "clienteID" : query.id,
     };
     
     options = {
@@ -129,7 +135,7 @@ fetch(`${APIREST_URL}`,options)
                 table.appendChild(tr);                   
             }
 
-            const body=[t.clienteID,`${t.id}`,`${t.solucion}`,`${t.estado_solucion}`,`${t.ultimo_contacto}`];
+            const body=[t.clienteID,`${t.id}`,`${t.descripcion || ''}`,`${t.estado_solucion}`,`${t.ultimo_contacto}`];
             
             let trl=document.createElement("tr");
             body.forEach((line) => {
